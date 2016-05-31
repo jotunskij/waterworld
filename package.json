@@ -1,0 +1,22 @@
+{
+  "name": "waterworld",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Jens Tinglev <jens.tinglev@gmail.com>",
+  "bin": {
+    "waterworld": "./bin/waterworld"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotunskij/waterworld"
+  },
+  "dependencies": {
+    "express": "4.2.x",
+  },
+  "preferGlobal": false,
+  "private": true,
+  "license": "MIT"
+}
