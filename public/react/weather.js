@@ -1,8 +1,3 @@
-/**
- * Created by tinglev on 01/06/16.
- */
-
-
 var WeatherDay = React.createClass({
   render: function() {
     return (
@@ -10,7 +5,7 @@ var WeatherDay = React.createClass({
         <td>{this.props.validTime}</td>
         <td>{this.props.t}</td>
       </tr>
-      );
+    );
   }
 });
 
@@ -21,7 +16,7 @@ var WeatherTable = React.createClass({
       dataType: 'json',
       cache: false,
       success: function(data) {
-        this.setState({data: data});
+        this.setState({data: data.timeseries});
       }.bind(this),
       error: function(xhr, status, err) {
         console.error('Error while loading weather from smhi');
@@ -30,7 +25,7 @@ var WeatherTable = React.createClass({
   },
 
   getInitialState: function() {
-    return {data: {}};
+    return {data: []};
   },
 
   componentDidMount: function() {
