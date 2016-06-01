@@ -14,7 +14,9 @@
     "url": "https://github.com/jotunskij/waterworld"
   },
   "dependencies": {
-    "express": "4.2.x",
+    "express": "*",
+    "body-parser": "*",
+    "basic-auth-connect": "*"
   },
   "preferGlobal": false,
   "private": true,
