@@ -4,6 +4,7 @@ var WeatherDay = React.createClass({
       <tr>
         <td>{this.props.validTime}</td>
         <td>{this.props.t}</td>
+        <td>{this.props.pit}</td>
       </tr>
     );
   }
@@ -42,8 +43,9 @@ var WeatherTable = React.createClass({
       <table>
         <thead>
           <tr>
-            <th>Day</th>
-            <th>Temp</th>
+            <th>Date/time</th>
+            <th>Temperature (C)</th>
+            <th>Precipitation (mm/h)</th>
           </tr>
         </thead>
         <tbody>
