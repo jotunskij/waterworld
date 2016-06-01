@@ -3,7 +3,7 @@ var basicAuth = require('basic-auth-connect');
 var bodyParser = require('body-parser');
 var path = require('path');
 var rpio = require('rpio');
-var CronJob = require('node-cron').CronJob;
+var CronJob = require('cron').CronJob;
 
 // GPIO stuff
 const M_PIN = 7;
@@ -53,7 +53,7 @@ app.listen(3000, function () {
 });
 
 // Close pins on exit
-process.on('exit', gpio.destroy(function() {
+/*process.on('exit', gpio.destroy(function() {
     console.log('All pins unexported');
   })
-);
+);*/

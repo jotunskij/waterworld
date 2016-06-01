@@ -2,9 +2,9 @@ var WeatherDay = React.createClass({
   render: function() {
     return (
       <tr>
-        <td>{this.props.validTime}</td>
-        <td>{this.props.t}</td>
-        <td>{this.props.pit}</td>
+        <td>{this.props.data.validTime}</td>
+        <td>{this.props.data.t}</td>
+        <td>{this.props.data.pit}</td>
       </tr>
     );
   }
