@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "author": "Jens Tinglev <jens.tinglev@gmail.com>",
-  "bin": {
-    "waterworld": "./bin/waterworld"
-  },
   "scripts": {
     "start": "node index.js"
   },

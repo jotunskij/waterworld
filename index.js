@@ -1,6 +1,7 @@
 var express = require('express');
 var basicAuth = require('basic-auth-connect');
 var bodyParser = require('body-parser');
+var path = require('path');
 var app = express();
 
 app.use(basicAuth('asadani', 'Parkvillan'));
