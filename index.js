@@ -2,14 +2,14 @@ var express = require('express');
 var basicAuth = require('basic-auth-connect');
 var bodyParser = require('body-parser');
 var path = require('path');
-var gpio = require('rpi-gpio');
+var rpio = require('rpio');
 var CronJob = require('node-cron').CronJob;
 
 // GPIO stuff
 const M_PIN = 7;
 var hertz = 0;
 
-gpio.setup(M_PIN, gpio.DIR_IN, gpio.EDGE_BOTH);
+/*gpio.setup(M_PIN, gpio.DIR_IN, gpio.EDGE_BOTH);
 
 function readValue(onDone) {
   hertz = 0;
@@ -24,7 +24,7 @@ function valueIncrementor(channel, value) {
   if (value) {
     hertz++;
   }
-}
+}*/
 
 // Express stuff
 var app = express();
@@ -41,9 +41,10 @@ app.use(function(req, res, next) {
 
 // API routes
 app.get('/measurement/current', function (req, res) {
-  readValue(function() {
+  res.json({'value' : 1});
+/*  readValue(function() {
     res.json({ 'value' : hertz });
-  });
+  });*/
 });
 
 // Server startup
