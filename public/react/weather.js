@@ -1,9 +1,13 @@
 var WeatherDay = React.createClass({
   render: function() {
+    var severity = 'success label';
+    var temp = parseFloat(this.props.data.t);
+    if (temp > 20) { severity = 'warning label'; }
+    if (temp > 24) { severity = 'alert label'; }
     return (
       <tr>
         <td>{this.props.data.validTime}</td>
-        <td>{this.props.data.t}</td>
+        <td><span className={severity}>{this.props.data.t}</span></td>
         <td>{this.props.data.pit}</td>
       </tr>
     );
@@ -34,9 +38,9 @@ var WeatherTable = React.createClass({
   },
 
   render: function() {
-    var weatherDays = this.props.data.map(function(weather){
+    var weatherDays = this.state.data.map(function(weather){
       return (
-        <WeatherDay data={weather} />
+        <WeatherDay data={weather} key={weather.validTime}/>
       );
     });
     return (
@@ -55,3 +59,8 @@ var WeatherTable = React.createClass({
     );
   }
 });
+
+ReactDOM.render(
+  <WeatherTable />,
+  document.getElementById('content')
+);
