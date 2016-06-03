@@ -19,7 +19,7 @@ function readValue() {
   var n2 = d2.getTime();
   var execMs = n2 - n1;
   var tmp = new Array(buf.length); /* 0.8 compat */
-  for (i = 0; i < buf.length; i++) {
+  for (var i = 0; i < buf.length; i++) {
     tmp[i] = buf[i];
   }
   var str = tmp.join('').replace(/0+/g, '0').replace(/1+/g, '1');
