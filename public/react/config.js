@@ -11,23 +11,25 @@ var ConfigValue = React.createClass({
         text = "Saved!";        
     }
     return (
-      <tr>
-        <td>{this.state.name}</td>
-        <td>
-            <input 
-                type="text" 
-                value={this.state.value} 
-                onChange={this.handleValueChange}
-                />
-        </td>
-        <td>
-            <input 
-                className={c}
-                type="button" 
-                onClick={this.handleSubmit} 
-                value={text} />
-        </td>
-      </tr>
+        <div className="row">
+            <div className="small-4 columns">
+                {this.state.name}
+            </div>
+            <div className="small-4 columns">
+                <input 
+                    type="text" 
+                    value={this.state.value} 
+                    onChange={this.handleValueChange}
+                    />
+            </div>
+            <div className="small-4 columns">
+                <input 
+                    className={c}
+                    type="button" 
+                    onClick={this.handleSubmit} 
+                    value={text} />
+            </div>
+        </div>
     );
   },
   
@@ -84,17 +86,7 @@ var ConfigTable = React.createClass({
       );
     });
     return (
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {configValues}
-        </tbody>
-      </table>
+       <div>{configValues}</div>
     );
   }
 });
