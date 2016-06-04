@@ -4,34 +4,51 @@ var bodyParser = require('body-parser');
 var path = require('path');
 var rpio = require('rpio');
 var CronJob = require('cron').CronJob;
+var sqlite = require('sqlite3');
+var request = require('request');
+var moment = require('moment');
 
-// GPIO stuff
-const M_PIN = 7;
-var hertz = 0;
-var buf = new Buffer(100000);
-rpio.open(M_PIN, rpio.OUTPUT);
+var cp = require('child_process');
+var reader = cp.fork('./reader');
 
-function readValue() {
-  var d1 = new Date();
-  var n1 = d1.getTime();
-  rpio.readbuf(M_PIN, buf);
-  var d2 = new Date();
-  var n2 = d2.getTime();
-  var execMs = n2 - n1;
-  var tmp = new Array(buf.length); /* 0.8 compat */
-  for (i = 0; i < buf.length; i++) {
-    tmp[i] = buf[i];
-  }
-  var str = tmp.join('').replace(/0+/g, '0').replace(/1+/g, '1');
-  var edges = (str.match(/1/g) || []).length;
-  return (edges / (execMs / 1000));  
-}
+/*
+  watering statuses:
+  done, queued, accepted, denied, running
+
+  Psuedo:
+  cronjob start get_value
+  cronjob start water_queue_handler
+    
+  get_value.read_value():
+    write_value_to_db
+    if should_water():
+      add_queued_watering_to_db()
+      cronjob stop get_value
+      send_notifications()
+    
+  water_queue_handler.check_for_jobs():
+    if job.queued:
+      send_notifications()
+      job.status = accepted
+    if job.accepted && job.time <= now:
+      start_watering()
+      timeout(stop_watering)  
+      job.status = done
+  
+  if config_changed():
+    reload_cron_jobs()
+    
+*/    
+
+// Db stuff
+var db = new sqlite.Database('waterworld.db', sqlite.OPEN_READWRITE);
 
 // Express stuff
-var app = express();
+let app = express();
 app.use(basicAuth('test', 'test'));
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 // API cache and access stuff
 app.use(function(req, res, next) {
@@ -40,9 +57,50 @@ app.use(function(req, res, next) {
   next();
 });
 
+// Callback for measurement read done
+reader.on('message', function(m) {
+  console.log('received: ' + m);
+});
+
 // API routes
 app.get('/measurement/current', function (req, res) {
   res.json({'value' : readValue()});
+});
+
+app.get('/measurement/test', function(req, res) {
+  reader.send('read');
+  res.json({'status': 'done'});
+});
+
+app.get('/weather', function(req, res) {
+  request('http://opendata-download-metfcst.smhi.se/api/category/pmp1.5g/version/1/geopoint/lat/59.318412/lon/17.670079/data.json', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      let result = JSON.parse(body);
+      for (var i = 0; i < result.timeseries.length; i++) {
+        result.timeseries[i].validTime = moment(result.timeseries[i].validTime).format('YYYY-MM-DD HH:mm:ss');          
+      }
+      res.json(result);
+    }
+  });    
+});
+
+app.get('/config', function(req, res) {
+  var ret = []
+  db.all('SELECT * FROM CONFIG', function(err, rows) {
+    rows.forEach(function(row) {
+      ret.push({name : row.NAME, value: row.VALUE});
+    });
+    res.json(ret);  
+  });
+});
+
+app.post('/config', function(req, res) {
+  db.run('UPDATE CONFIG SET VALUE=? WHERE NAME=?', req.body.value, req.body.name, function(err) {
+    if (err) {
+      req.json({err: err});
+    }
+  });
+  res.json({true: true});    
 });
 
 // Server startup
@@ -51,8 +109,8 @@ app.listen(3000, function () {
 });
 
 // Close pins on exit
-/*process.on('exit', gpio.destroy(function() {
-    console.log('All pins unexported');
-  })
-);*/
+process.on('exit', function() {
+    db.close();
+  }
+);
 

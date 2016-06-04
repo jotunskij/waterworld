@@ -17,10 +17,11 @@ var WeatherDay = React.createClass({
 var WeatherTable = React.createClass({
   loadWeather: function() {
     $.ajax({
-      url: 'http://opendata-download-metfcst.smhi.se/api/category/pmp1.5g/version/1/geopoint/lat/59.318412/lon/17.670079/data.json',
+      url: '/weather',
       dataType: 'json',
       cache: false,
       success: function(data) {
+        console.log('Data: ' + JSON.stringify(data));
         this.setState({data: data.timeseries});
       }.bind(this),
       error: function(xhr, status, err) {
@@ -62,5 +63,5 @@ var WeatherTable = React.createClass({
 
 ReactDOM.render(
   <WeatherTable />,
-  document.getElementById('content')
+  document.getElementById('weather')
 );
