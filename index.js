@@ -7,9 +7,8 @@ var CronJob = require('cron').CronJob;
 var sqlite = require('sqlite3');
 var request = require('request');
 var moment = require('moment');
-
-var cp = require('child_process');
-var reader = cp.fork('./reader');
+var config = require('./config');
+var jobs = require('./cronjobs');
 
 /*
   watering statuses:
@@ -57,19 +56,9 @@ app.use(function(req, res, next) {
   next();
 });
 
-// Callback for measurement read done
-reader.on('message', function(m) {
-  console.log('received: ' + m);
-});
-
 // API routes
-app.get('/measurement/current', function (req, res) {
-  res.json({'value' : readValue()});
-});
-
-app.get('/measurement/test', function(req, res) {
-  reader.send('read');
-  res.json({'status': 'done'});
+app.get('/measurements', function (req, res) {
+  res.json({'value' : 0});
 });
 
 app.get('/weather', function(req, res) {
@@ -85,26 +74,20 @@ app.get('/weather', function(req, res) {
 });
 
 app.get('/config', function(req, res) {
-  var ret = []
-  db.all('SELECT * FROM CONFIG', function(err, rows) {
-    rows.forEach(function(row) {
-      ret.push({name : row.NAME, value: row.VALUE});
-    });
-    res.json(ret);  
+  config.getConfig(function(cfg) {
+    res.json(cfg);  
   });
 });
 
 app.post('/config', function(req, res) {
-  db.run('UPDATE CONFIG SET VALUE=? WHERE NAME=?', req.body.value, req.body.name, function(err) {
-    if (err) {
-      req.json({err: err});
-    }
-  });
+  config.saveConfig(req.body.name, req.body.value);
   res.json({true: true});    
 });
 
 // Server startup
 app.listen(3000, function () {
+  jobs.initConfig(config, db);
+  jobs.startJobs();
   console.log('Server listening on port 3000!');
 });
 
