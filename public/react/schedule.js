@@ -16,36 +16,51 @@ var Schedule = React.createClass({
     };
   },
 
+  setDirty: function() {
+    this.setState({saved: false});
+  },
+
   handleMondayChange: function(event) {
     this.setState({monday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleTuesdayChange: function(event) {
     this.setState({tuesday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleWednesdayChange: function(event) {
     this.setState({wednesday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleThursdayChange: function(event) {
     this.setState({thursday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleFridayChange: function(event) {
     this.setState({friday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleSaturdayChange: function(event) {
     this.setState({saturday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleSundayChange: function(event) {
     this.setState({sunday: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleActiveChange: function(event) {
     this.setState({active: event.target.checked ? 1 : 0});
+    this.setDirty();
   },
   handleTimeChange: function(event) {
     this.setState({time: event.target.value});
+    this.setDirty();
   },
   handleDurationChange: function(event) {
     this.setState({duration: event.target.value});
+    this.setDirty();
   },
+
   render: function() {
     let c = "button";
     let text = "Save";
@@ -56,7 +71,7 @@ var Schedule = React.createClass({
     return (
       <div>
         <div className="row">
-          <fieldset class="large-6 columns">
+          <fieldset className="fieldset">
             <legend>Days</legend>
             <input id="monday"
                     type="checkbox"
@@ -96,7 +111,7 @@ var Schedule = React.createClass({
           </fieldset>
         </div>
         <div className="row">
-          <div className="small-4 columns">
+          <div className="small-1 columns">
             <label>Time
               <input
                 id="time"
@@ -106,7 +121,7 @@ var Schedule = React.createClass({
                 />
             </label>
           </div>
-          <div className="small-4 columns">
+          <div className="small-1 columns">
             <label>Duration
               <input
                 id="duration"
@@ -116,14 +131,14 @@ var Schedule = React.createClass({
                 />
             </label>
           </div>
-          <fieldset class="small-2 columns">
-            <legend>Active</legend>
+          <div className="small-1 columns">
+            <label>Active</label>
             <input id="active"
                    type="checkbox"
                    checked={this.state.active}
                    onChange={this.handleActiveChange} />
-          </fieldset>
-          <div className="small-4 columns">
+          </div>
+          <div className="large-1 columns">
             <input
               id="save"
               className={c}
@@ -165,7 +180,7 @@ var ScheduleTable = React.createClass({
         this.setState({data: data});
       }.bind(this),
       error: function(xhr, status, err) {
-        console.error('Error while loading configuration');
+        console.error('Error while loading schedule');
       }.bind(this)
     })
   },
