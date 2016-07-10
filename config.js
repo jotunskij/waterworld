@@ -1,27 +1,31 @@
 var sqlite = require('sqlite3');
 
-var db = new sqlite.Database('waterworld.db', sqlite.OPEN_READWRITE);
+var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
 
-function getConfig(callback) {
-  var cfg = [];
-  db.all('SELECT * FROM CONFIG', function(err, rows) {
-    rows.forEach(function(row) {
-      cfg.push({name : row.NAME, value: row.VALUE});
+module.exports = {
+
+  getConfig: function(callback) {
+    var cfg = [];
+    db.all('SELECT * FROM CONFIG', function(err, rows) {
+      rows.forEach(function(row) {
+        cfg.push({name : row.NAME, value: row.VALUE});
+      });
+      callback(cfg);
     });
-    callback(cfg);
-  });   
-}
+  },
 
-function getConfigByName(name, callback) {
+  getConfigByName: function(name, callback) {
     db.get('SELECT * FROM CONFIG WHERE NAME=?', name, function(err, row) {
-        callback(row);    
+      callback(row);
     });
-}
+  },
 
-function saveConfig(name, value) {
-    db.run('UPDATE CONFIG SET VALUE=? WHERE NAME=?', 
-        value, 
-        name, 
-        function(err) {
-        });   
+  saveConfig: function(name, value) {
+    db.run('UPDATE CONFIG SET VALUE=? WHERE NAME=?',
+      value,
+      name,
+      function(err) {
+      });
+  }
+
 }

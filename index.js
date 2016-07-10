@@ -7,40 +7,17 @@ var CronJob = require('cron').CronJob;
 var sqlite = require('sqlite3');
 var request = require('request');
 var moment = require('moment');
-var config = require('./config');
-var jobs = require('./cronjobs');
+var config = require('/home/pi/Repos/waterworld/config');
+var jobs = require('/home/pi/Repos/waterworld/cronjobs');
+var schedule = require('/home/pi/Repos/waterworld/schedule');
+var mailer = require('/home/pi/Repos/waterworld/mailer');
 
-/*
-  watering statuses:
-  done, queued, accepted, denied, running
-
-  Psuedo:
-  cronjob start get_value
-  cronjob start water_queue_handler
-    
-  get_value.read_value():
-    write_value_to_db
-    if should_water():
-      add_queued_watering_to_db()
-      cronjob stop get_value
-      send_notifications()
-    
-  water_queue_handler.check_for_jobs():
-    if job.queued:
-      send_notifications()
-      job.status = accepted
-    if job.accepted && job.time <= now:
-      start_watering()
-      timeout(stop_watering)  
-      job.status = done
-  
-  if config_changed():
-    reload_cron_jobs()
-    
-*/    
+// rpio
+const IO_PIN = 12;
+rpio.open(IO_PIN, rpio.OUTPUT, rpio.LOW);
 
 // Db stuff
-var db = new sqlite.Database('waterworld.db', sqlite.OPEN_READWRITE);
+var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
 
 // Express stuff
 let app = express();
@@ -62,15 +39,26 @@ app.get('/measurements', function (req, res) {
 });
 
 app.get('/weather', function(req, res) {
-  request('http://opendata-download-metfcst.smhi.se/api/category/pmp1.5g/version/1/geopoint/lat/59.318412/lon/17.670079/data.json', function (error, response, body) {
+  request('http://opendata-download-metfcst.smhi.se/api/category/pmp2g/version/2/geotype/point/lon/17.670079/lat/59.318412/data.json', function (error, response, body) {
     if (!error && response.statusCode == 200) {
       let result = JSON.parse(body);
-      for (var i = 0; i < result.timeseries.length; i++) {
-        result.timeseries[i].validTime = moment(result.timeseries[i].validTime).format('YYYY-MM-DD HH:mm:ss');          
+      for (var i = 0; i < result.timeSeries.length; i++) {
+        result.timeSeries[i].validTime = moment(result.timeSeries[i].validTime).format('YYYY-MM-DD HH:mm:ss');
       }
       res.json(result);
     }
   });    
+});
+
+app.get('/schedule', function(req, res){
+  schedule.getSchedules(function(schedules) {
+    res.json(schedules);
+  });
+});
+
+app.post('/schedule', function(req, res) {
+  schedule.saveSchedule(req.body);
+  res.json({true: true});
 });
 
 app.get('/config', function(req, res) {
@@ -84,10 +72,64 @@ app.post('/config', function(req, res) {
   res.json({true: true});    
 });
 
+var wateringInterval;
+
+function correctDay(schedule, date) {
+  switch(date.getDay()) {
+    case 0:
+      return schedule.sunday;
+      break;
+    case 1:
+      return schedule.monday;
+      break;
+    case 2:
+      return schedule.tuesday;
+      break;
+    case 3:
+      return schedule.wednesday;
+      break;
+    case 4:
+      return schedule.thursday;
+      break;
+    case 5:
+      return schedule.friday;
+      break;
+    case 6:
+      return schedule.saturday;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
+function checkSchedule() {
+  var cDate = new Date();
+  var sTime = ("0" + cDate.getHours()).slice(-2) + ":" + ("0" + cDate.getMinutes()).slice(-2);
+  console.log("Checking schedules for jobs: " + sTime);
+  schedule.getSchedules(function(schedules) {
+    for (var i = 0; i < schedules.length; i++) {
+      if (schedules[i].time == sTime &&
+          schedules[i].active == 1 &&
+          correctDay(schedules[i], cDate) == 1) {
+        clearInterval(wateringInterval);
+        console.log("Watering!");
+        rpio.write(IO_PIN, rpio.HIGH);
+        mailer.sendWaterMail();
+        setTimeout(startWaterTimer(), schedule.duration);
+        //wateringInterval = setInterval(checkSchedule, 1000);
+      }
+    }
+  });
+}
+
+function startWaterTimer() {
+  wateringInterval = setInterval(checkSchedule, 1000);
+}
+
 // Server startup
 app.listen(3000, function () {
-  jobs.initConfig(config, db);
-  jobs.startJobs();
+  startWaterTimer();
   console.log('Server listening on port 3000!');
 });
 
