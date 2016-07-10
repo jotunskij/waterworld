@@ -11,6 +11,7 @@ var config = require('/home/pi/Repos/waterworld/config');
 var jobs = require('/home/pi/Repos/waterworld/cronjobs');
 var schedule = require('/home/pi/Repos/waterworld/schedule');
 var mailer = require('/home/pi/Repos/waterworld/mailer');
+var watering = require('/home/pi/Repos/waterworld/watering');
 
 // rpio
 const IO_PIN = 12;
@@ -48,6 +49,12 @@ app.get('/weather', function(req, res) {
       res.json(result);
     }
   });    
+});
+
+app.get('/watering', function(req, res){
+  watering.getWatering(function(waterings) {
+    res.json(waterings);
+  });
 });
 
 app.get('/schedule', function(req, res){
@@ -103,6 +110,16 @@ function correctDay(schedule, date) {
   }
 }
 
+function startWatering(schedule) {
+  clearInterval(wateringInterval);
+  console.log("Watering!");
+  rpio.write(IO_PIN, rpio.HIGH);
+  mailer.sendWaterMail();
+  watering.addWatering(function(utcDate) {
+    setTimeout(resetWatering.bind(null, utcDate), schedule.duration * 1000 * 60);
+  });
+}
+
 function checkSchedule() {
   var cDate = new Date();
   var sTime = ("0" + cDate.getHours()).slice(-2) + ":" + ("0" + cDate.getMinutes()).slice(-2);
@@ -112,24 +129,23 @@ function checkSchedule() {
       if (schedules[i].time == sTime &&
           schedules[i].active == 1 &&
           correctDay(schedules[i], cDate) == 1) {
-        clearInterval(wateringInterval);
-        console.log("Watering!");
-        rpio.write(IO_PIN, rpio.HIGH);
-        mailer.sendWaterMail();
-        setTimeout(startWaterTimer(), schedule.duration);
-        //wateringInterval = setInterval(checkSchedule, 1000);
+        startWatering(schedules[i]);
       }
     }
   });
 }
 
-function startWaterTimer() {
-  wateringInterval = setInterval(checkSchedule, 1000);
+function resetWatering(startTime) {
+  rpio.write(IO_PIN, rpio.LOW);
+  if (startTime) {
+    watering.endWatering(startTime);
+  }
+  wateringInterval = setInterval(checkSchedule, 5000);
 }
 
 // Server startup
 app.listen(3000, function () {
-  startWaterTimer();
+  resetWatering();
   console.log('Server listening on port 3000!');
 });
 
