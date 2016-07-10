@@ -22,7 +22,7 @@ var WeatherTable = React.createClass({
       cache: false,
       success: function(data) {
         console.log('Data: ' + JSON.stringify(data));
-        this.setState({data: data.timeseries});
+        this.setState({data: data.timeSeries});
       }.bind(this),
       error: function(xhr, status, err) {
         console.error('Error while loading weather from smhi');

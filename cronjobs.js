@@ -2,7 +2,7 @@ var CronJob = require('cron').CronJob;
 var sqlite = require('sqlite3');
 
 var cp = require('child_process');
-var reader = cp.fork('./reader');
+var reader = cp.fork('/home/pi/Repos/waterworld/reader');
 
 var config = [];
 var database;
