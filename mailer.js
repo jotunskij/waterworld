@@ -8,7 +8,6 @@ var secret = require('/home/pi/Repos/waterworld/secret')
 // create reusable transporter object using the default SMTP transport
 var transporter = nodemailer.createTransport('smtps://'+secret.gmail_user+':'+secret.gmail_pass+'@smtp.gmail.com');
 
-
 function createMailOptions(title, msg) {
   return {
     from: '"Bevattning" <svuzzigastebuzzen@gmail.com>', // sender address
