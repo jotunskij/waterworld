@@ -112,7 +112,6 @@ function correctDay(schedule, date) {
 
 function startWatering(schedule) {
   clearInterval(wateringInterval);
-  console.log("Watering!");
   rpio.write(IO_PIN, rpio.HIGH);
   mailer.sendWaterMail();
   watering.addWatering(function(utcDate) {
@@ -120,16 +119,22 @@ function startWatering(schedule) {
   });
 }
 
-function checkSchedule() {
+function shouldWaterNow(schedule) {
   var cDate = new Date();
   var sTime = ("0" + cDate.getHours()).slice(-2) + ":" + ("0" + cDate.getMinutes()).slice(-2);
+
+  return (schedule.time == sTime &&
+    schedule.active == 1 &&
+    correctDay(schedule, cDate) == 1);
+}
+
+function checkSchedule() {
   console.log("Checking schedules for jobs: " + sTime);
   schedule.getSchedules(function(schedules) {
     for (var i = 0; i < schedules.length; i++) {
-      if (schedules[i].time == sTime &&
-          schedules[i].active == 1 &&
-          correctDay(schedules[i], cDate) == 1) {
-        startWatering(schedules[i]);
+      var schedule = schedules[i];
+      if (shouldWaterNow(schedule)) {
+        startWatering(schedule);
       }
     }
   });
@@ -149,9 +154,17 @@ app.listen(3000, function () {
   console.log('Server listening on port 3000!');
 });
 
-// Close pins on exit
+function shutdown() {
+  console.log('Shutdown detected. Closing db and sending LOW signal to IO_PIN');
+  rpio.write(IO_PIN, rpio.LOW);
+  db.close();
+}
+
 process.on('exit', function() {
-    db.close();
-  }
-);
+    shutdown();
+});
+
+process.on('uncaughtException', function (err) {
+  shutdown();
+});
 

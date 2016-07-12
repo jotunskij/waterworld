@@ -1,7 +1,3 @@
-/**
- * Created by tinglev on 10/07/16.
- */
-
 var sqlite = require('sqlite3');
 
 var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
@@ -11,6 +7,7 @@ module.exports = {
   addWatering: function(callback) {
     var startDate = new Date();
     var utcDate = startDate.toUTCString();
+    console.log("Watering started: " + utcDate);
     db.run('INSERT INTO WATERING (STARTED) VALUES (?)',
       utcDate,
       function(err) {
@@ -25,6 +22,7 @@ module.exports = {
   endWatering: function(startTime) {
     var endDate = new Date();
     var utcDate = endDate.toUTCString();
+    console.log("Watering ended: " + utcDate);
     db.run('UPDATE WATERING SET ENDED=? WHERE STARTED=?',
       utcDate,
       startTime,
