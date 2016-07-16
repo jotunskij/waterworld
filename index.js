@@ -13,9 +13,18 @@ var watering = require('/home/pi/Repos/waterworld/watering');
 var soil = require('/home/pi/Repos/waterworld/soil');
 var winston = require('winston');
 
+var logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename: 'waterworld.log' })
+  ]
+});
+
 // rpio
 const IO_PIN = 12;
+const PRESSURE_LIMIT_PIN = 40;
 rpio.open(IO_PIN, rpio.OUTPUT, rpio.LOW);
+rpio.open(PRESSURE_LIMIT_PIN, rpio.INPUT);
 
 // Db stuff
 var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
@@ -34,6 +43,11 @@ app.use(function(req, res, next) {
   next();
 });
 
+// Timing stuff
+var wateringInterval;
+var pressureInterval;
+const timingInterval = 30000;
+
 // API routes
 app.get('/measurements', function (req, res) {
   res.json({'value' : 0});
@@ -49,6 +63,10 @@ app.get('/weather', function(req, res) {
       res.json(result);
     }
   });    
+});
+
+app.get('/pressure', function(req, res){
+  res.json({value: getPressure()});
 });
 
 app.get('/moisture', function(req, res){
@@ -91,8 +109,6 @@ app.post('/config', function(req, res) {
   res.json({true: true});    
 });
 
-var wateringInterval;
-
 function correctDay(schedule, date) {
   switch(date.getDay()) {
     case 0:
@@ -134,7 +150,7 @@ function startWatering(schedule) {
 function shouldWaterNow(schedule) {
   var cDate = new Date();
   var sTime = ("0" + cDate.getHours()).slice(-2) + ":" + ("0" + cDate.getMinutes()).slice(-2);
-  winston.info("Checking schedules for jobs: " + sTime);
+  logger.info("Checking schedules for jobs: " + sTime);
 
   return (schedule.time == sTime &&
     schedule.active == 1 &&
@@ -152,23 +168,38 @@ function checkSchedule() {
   });
 }
 
+function getPressure() {
+  return rpio.read(PRESSURE_LIMIT_PIN);
+}
+
+function checkPressure() {
+  var value = getPressure();
+  if (value) {
+    logger.warn('Pressure is not OK! Sending mail');
+    clearInterval(pressureInterval);
+    mailer.sendPressureWarningMail();
+  } else {
+    logger.info('Pressure is OK');
+  }
+}
+
 function resetWatering(startTime) {
   rpio.write(IO_PIN, rpio.LOW);
   if (startTime) {
     watering.endWatering(startTime);
   }
-  wateringInterval = setInterval(checkSchedule, 30000);
+  wateringInterval = setInterval(checkSchedule, timingInterval);
+  pressureInterval = setInterval(checkPressure, timingInterval);
 }
 
 // Server startup
 app.listen(3000, function () {
-  winston.add(winston.transports.File, { filename: 'waterworld.log' });
   resetWatering();
-  winston.info('Server listening on port 3000!');
+  logger.info('Server listening on port 3000!');
 });
 
 function shutdown() {
-  winston.info('Shutdown detected. Closing db and sending LOW signal to IO_PIN');
+  logger.info('Shutdown detected. Closing db and sending LOW signal to IO_PIN');
   rpio.write(IO_PIN, rpio.LOW);
   db.close();
   process.exit();
@@ -179,7 +210,7 @@ process.on('exit', function() {
 });
 
 process.on('uncaughtException', function (err) {
-  winston.error('Uncaught exception: ' + err);
+  logger.error('Uncaught exception: ' + err);
   shutdown();
 });
 

@@ -18,6 +18,7 @@ module.exports = {
         if (err) {
           winston.error('Error while reading moisture: ' + err);
           callback(-1);
+          return;
         }
         var i = res[0] << 8;
         i = i | res[1];
@@ -34,6 +35,7 @@ module.exports = {
       if (err) {
         winston.error('Error while reading temperature: ' + err);
         callback(-1);
+        return;
       }
       var i = res[0] << 8;
       i = i | res[1];

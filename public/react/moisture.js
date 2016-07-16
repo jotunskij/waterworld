@@ -8,7 +8,7 @@ var Moisture = React.createClass({
         this.setState({value: data.value});
       }.bind(this),
       error: function(xhr, status, err) {
-        console.error('Error while loading watering');
+        console.error('Error while loading moisture');
       }.bind(this)
     })
   },
@@ -19,7 +19,7 @@ var Moisture = React.createClass({
 
   componentDidMount: function() {
     this.loadMoisture();
-    setInterval(this.loadMoisture, 2000);
+    setInterval(this.loadMoisture, 5000);
   },
 
   render: function() {

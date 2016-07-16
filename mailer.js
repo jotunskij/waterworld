@@ -2,12 +2,13 @@ var nodemailer = require('nodemailer');
 var secret = require('/home/pi/Repos/waterworld/secret');
 var winston = require('winston');
 
-var transporter = nodemailer.createTransport('smtps://'+secret.gmail_user+':'+secret.gmail_pass+'@smtp.gmail.com');
+var login = secret.gmail_user+':'+secret.gmail_pass;
+var transporter = nodemailer.createTransport('smtps://'+login+'@smtp.gmail.com');
 
 function createMailOptions(title, msg) {
   return {
-    from: '"Bevattning" <svuzzigastebuzzen@gmail.com>', // sender address
-    to: 'jens.tinglev@gmail.com', // list of receivers
+    from: secret.from, // sender address
+    to: secret.recipients, // list of receivers
     subject: title, // Subject line
     text: msg, // plaintext body
     html: '<b>' + msg + '</b>' // html body
