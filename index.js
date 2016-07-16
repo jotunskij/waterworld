@@ -10,6 +10,8 @@ var moment = require('moment');
 var schedule = require('/home/pi/Repos/waterworld/schedule');
 var mailer = require('/home/pi/Repos/waterworld/mailer');
 var watering = require('/home/pi/Repos/waterworld/watering');
+var soil = require('/home/pi/Repos/waterworld/soil');
+var winston = require('winston');
 
 // rpio
 const IO_PIN = 12;
@@ -47,6 +49,18 @@ app.get('/weather', function(req, res) {
       res.json(result);
     }
   });    
+});
+
+app.get('/moisture', function(req, res){
+  soil.getMoisture(function(value) {
+    res.json({value: value});
+  });
+});
+
+app.get('/temperature', function(req, res){
+  soil.getTemperature(function(value) {
+    res.json({value: value});
+  });
 });
 
 app.get('/watering', function(req, res){
@@ -120,6 +134,7 @@ function startWatering(schedule) {
 function shouldWaterNow(schedule) {
   var cDate = new Date();
   var sTime = ("0" + cDate.getHours()).slice(-2) + ":" + ("0" + cDate.getMinutes()).slice(-2);
+  winston.info("Checking schedules for jobs: " + sTime);
 
   return (schedule.time == sTime &&
     schedule.active == 1 &&
@@ -127,7 +142,6 @@ function shouldWaterNow(schedule) {
 }
 
 function checkSchedule() {
-  console.log("Checking schedules for jobs: " + sTime);
   schedule.getSchedules(function(schedules) {
     for (var i = 0; i < schedules.length; i++) {
       var schedule = schedules[i];
@@ -143,19 +157,21 @@ function resetWatering(startTime) {
   if (startTime) {
     watering.endWatering(startTime);
   }
-  wateringInterval = setInterval(checkSchedule, 5000);
+  wateringInterval = setInterval(checkSchedule, 30000);
 }
 
 // Server startup
 app.listen(3000, function () {
+  winston.add(winston.transports.File, { filename: 'waterworld.log' });
   resetWatering();
-  console.log('Server listening on port 3000!');
+  winston.info('Server listening on port 3000!');
 });
 
 function shutdown() {
-  console.log('Shutdown detected. Closing db and sending LOW signal to IO_PIN');
+  winston.info('Shutdown detected. Closing db and sending LOW signal to IO_PIN');
   rpio.write(IO_PIN, rpio.LOW);
   db.close();
+  process.exit();
 }
 
 process.on('exit', function() {
@@ -163,6 +179,7 @@ process.on('exit', function() {
 });
 
 process.on('uncaughtException', function (err) {
+  winston.error('Uncaught exception: ' + err);
   shutdown();
 });
 

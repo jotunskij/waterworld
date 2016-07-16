@@ -1,4 +1,5 @@
 var sqlite = require('sqlite3');
+var winston = require('winston');
 
 var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
 
@@ -42,7 +43,7 @@ module.exports = {
       body.id,
       function(err) {
         if (err) {
-          console.log("Error while saving schedule: " + err);
+          winston.error("Error while saving schedule: " + err);
         }
       });
   }

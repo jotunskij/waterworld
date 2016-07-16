@@ -1,5 +1,6 @@
 var nodemailer = require('nodemailer');
-var secret = require('/home/pi/Repos/waterworld/secret')
+var secret = require('/home/pi/Repos/waterworld/secret');
+var winston = require('winston');
 
 var transporter = nodemailer.createTransport('smtps://'+secret.gmail_user+':'+secret.gmail_pass+'@smtp.gmail.com');
 
@@ -21,9 +22,10 @@ module.exports = {
     // send mail with defined transport object
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        return console.log('Error sending mail: ' + error);
+        winston.error('Error sending mail: ' + error);
+        return;
       }
-      console.log('Mail sent for watering');
+      winston.info('Mail sent for watering');
     });
   },
 
@@ -33,9 +35,10 @@ module.exports = {
     // send mail with defined transport object
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        return console.log('Error sending mail: ' + error);
+        winston.error('Error sending mail: ' + error);
+        return;
       }
-      console.log('Mail sent for pressure warning');
+      winston.info('Mail sent for pressure warning');
     });
   }
 

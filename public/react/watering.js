@@ -57,10 +57,10 @@ var WateringTable = React.createClass({
       <div>
         <div className="row">
           <div className="small-4 columns">
-            <h5>Started</h5>
+            <h5><b>Started</b></h5>
           </div>
           <div className="small-8 columns">
-            <h5>Ended</h5>
+            <h5><b>Ended</b></h5>
           </div>
         </div>
         {waterings}
