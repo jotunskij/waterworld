@@ -192,8 +192,24 @@ function resetWatering(startTime) {
   pressureInterval = setInterval(checkPressure, timingInterval);
 }
 
+function test_on() {
+  rpio.write(IO_PIN, rpio.HIGH);
+  setTimeout(test_off, 5000)
+}
+
+function test_off() {
+  rpio.write(IO_PIN, rpio.LOW);
+}
+
 // Server startup
 app.listen(3000, function () {
+  if (process.argv.length > 2) {
+    if (process.argv[2] === 'test') {
+      while(true) {
+        test_on();
+      }
+    }
+  }
   resetWatering();
   logger.info('Server listening on port 3000!');
 });
