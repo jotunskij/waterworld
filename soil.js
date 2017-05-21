@@ -14,7 +14,7 @@ module.exports = {
 
   getMoisture: function(callback) {
     try {
-      wire.readBytes('0', 2, function (err, res) {
+      /*wire.readBytes('0', 2, function (err, res) {
         if (err) {
           winston.error('Error while reading moisture: ' + err);
           callback(-1);
@@ -23,7 +23,8 @@ module.exports = {
         var i = res[0] << 8;
         i = i | res[1];
         callback(i);
-      });
+      });*/
+      callback(-1)
     } catch(err) {
       winston.error('Caught exception in getMoisture: ' + err);
       callback(-1);

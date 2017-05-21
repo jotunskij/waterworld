@@ -18,8 +18,8 @@ var Moisture = React.createClass({
   },
 
   componentDidMount: function() {
-    this.loadMoisture();
-    setInterval(this.loadMoisture, 5000);
+    //this.loadMoisture();
+    //setInterval(this.loadMoisture, 5000);
   },
 
   render: function() {

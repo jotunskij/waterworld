@@ -30,7 +30,7 @@ rpio.open(PRESSURE_LIMIT_PIN, rpio.INPUT);
 var db = new sqlite.Database('/home/pi/Repos/waterworld/waterworld.db', sqlite.OPEN_READWRITE);
 
 // Express stuff
-let app = express();
+var app = express();
 app.use(basicAuth('test', 'test'));
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
@@ -56,7 +56,7 @@ app.get('/measurements', function (req, res) {
 app.get('/weather', function(req, res) {
   request('http://opendata-download-metfcst.smhi.se/api/category/pmp2g/version/2/geotype/point/lon/17.670079/lat/59.318412/data.json', function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      let result = JSON.parse(body);
+      var result = JSON.parse(body);
       for (var i = 0; i < result.timeSeries.length; i++) {
         result.timeSeries[i].validTime = moment(result.timeSeries[i].validTime).format('YYYY-MM-DD HH:mm:ss');
       }
@@ -189,12 +189,12 @@ function resetWatering(startTime) {
     watering.endWatering(startTime);
   }
   wateringInterval = setInterval(checkSchedule, timingInterval);
-  pressureInterval = setInterval(checkPressure, timingInterval);
 }
 
 // Server startup
 app.listen(3000, function () {
   resetWatering();
+  //pressureInterval = setInterval(checkPressure, timingInterval);
   logger.info('Server listening on port 3000!');
 });
 
